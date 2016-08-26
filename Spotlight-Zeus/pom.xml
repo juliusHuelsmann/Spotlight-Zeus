@@ -1,0 +1,69 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <groupId>Spotlight</groupId>
+  <artifactId>Zeus</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+  
+  <name>Spotlight-Zeus</name>
+  <url>http://maven.apache.org</url>
+  <description>The central Spotlight repository that combines the sub-repositories.</description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <repositories>
+  <repository>
+  <id>jitpack.io</id>
+  <url>https://jitpack.io</url>
+  </repository>
+  </repositories>
+  <dependencies>
+  
+    <dependency>
+      <groupId>org.jgroups</groupId>
+      <artifactId>jgroups</artifactId>
+      <version>2.12.1.Final</version>
+    </dependency>
+    
+    
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    
+    
+    <dependency>
+      <groupId>com.github.juliusHuelsmann</groupId>
+      <artifactId>JavaUtils</artifactId>
+      <version>e2387e5</version>
+      <scope>compile</scope>
+    </dependency>
+    
+    
+    <dependency>
+      <groupId>com.github.juliusHuelsmann</groupId>
+      <artifactId>Spotlight-Athene</artifactId>
+      <version>d8ee7b8</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.juliusHuelsmann</groupId>
+      <artifactId>Spotlight-Hermes</artifactId>
+      <version>e9e3091</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.juliusHuelsmann</groupId>
+      <artifactId>Spotlight-Delphi</artifactId>
+      <version>4eb8c5f</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+
+
+</project>
