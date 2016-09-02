@@ -259,9 +259,10 @@ public class Highlight extends JFrame {
 
     // 0) initialize git repository
     final String serialPath = System.getProperty("user.home") + "/.Spotlight/serial/";
-    final String path = System.getProperty("user.home") + "/.Spotlight/temporary/gitRepository/";
-    new File(path).mkdirs();
-    Utils.executeCommandLinux("git init " + path);
+    final String gitRepopath = System.getProperty("user.home") + "/.Spotlight/temporary/gitRepository/";
+    new File(gitRepopath).mkdirs();
+    new File(serialPath).mkdirs();
+    Utils.executeCommandLinux("git init " + gitRepopath);
 
     // 1) download files 
     
@@ -270,12 +271,12 @@ public class Highlight extends JFrame {
         + "athene/view/dictionaries/";
     final String[] contents = new String[] {
         "Dictionaries.java", "VDictionary.java", "VDictionaryLocal.java",
-        "VDictionaryWeb.java", "ViewDictSettings"   
+        "VDictionaryWeb.java", "ViewDictSettings.java"   
     };
     final String pathinfix = "src/main/java/";
-    new File(path + pathinfix).mkdirs();
+    new File(gitRepopath + pathinfix).mkdirs();
     for (int j = 0; j < contents.length; j++) {
-      final String resultingPath = path + pathinfix + contents[j];
+      final String resultingPath = gitRepopath + pathinfix + contents[j];
       try {
         saveUrl(resultingPath, prefix + contents[j]);
       } catch (MalformedURLException e) {
@@ -308,15 +309,32 @@ public class Highlight extends JFrame {
     String s = readFileFromJar("/res/Serialize");
     s = s.replaceAll("\\[FILE_LOCATION\\]",  outputFileLocation);
     s = s.replaceAll("\\[JAR_CLASS_NAME\\]", getClassName());
-    writeToFile(path + pathinfix + "Start.java", s);
+    writeToFile(gitRepopath + pathinfix + "Start.java", s);
     
 
-    writeToFile(path + pathinfix + getClassName() + ".java", pane.getText());
+    writeToFile(gitRepopath + pathinfix + getClassName() + ".java", pane.getText());
     
+    
+    // commit
+    final String scriptPath = gitRepopath + "commitScript";
+    Utils.generateExecutableScript(scriptPath, "#!/bin/bash\ngit add .\n"
+        + "git commit -am \".\"");
+    Utils.executeCommandLinux(scriptPath);
+    
+    // compile
+    final String namePostfix = "Serial";
+    final String namePath = System.getProperty("user.home")  + "/.Spotlight/";
+    final String nameJarFile = namePath + namePostfix + ".jar";
+    Utils.executeCommandLinux(System.getProperty("user.home") 
+        + "/.CompileFromGithub " + namePostfix + " " + gitRepopath + " src/main/java/ master Start " + namePath);
     //need the following files:
     // Dictionaries (all dependencies)
     // the jar file for serializing the new created java file
     // the new created java file
+    
+    Utils.executeCommandLinux("java -jar " + nameJarFile);
+    //TODO: copy the result to the given folder
+    
     
   }
   
