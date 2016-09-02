@@ -317,6 +317,7 @@ public class Highlight extends JFrame {
     
     // commit
     final String scriptPath = gitRepopath + "commitScript";
+    System.out.println(scriptPath);
     Utils.generateExecutableScript(scriptPath, "#!/bin/bash\ngit add .\n"
         + "git commit -am \".\"");
     Utils.executeCommandLinux(scriptPath);
