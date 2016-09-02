@@ -319,7 +319,7 @@ public class Highlight extends JFrame {
     final String scriptPath = gitRepopath + "commitScript";
     System.out.println(scriptPath);
     Utils.generateExecutableScript(scriptPath, "#!/bin/bash\ncd " 
-        + scriptPath + "\ngit add .\n"
+        + gitRepopath + "\ngit add .\n"
         + "git commit -am \".\"");
     Utils.executeCommandLinux(scriptPath);
     
@@ -328,8 +328,8 @@ public class Highlight extends JFrame {
     final String namePath = System.getProperty("user.home")  + "/.Spotlight/";
     final String nameJarFile = namePath + namePostfix + ".jar";
     
-    final String totalcommand = System.getProperty("user.home") 
-        + "/.CompileFromGithub " + namePostfix + " " + gitRepopath 
+    final String totalcommand = "java -jar " + System.getProperty("user.home") 
+        + "/.CompileFromGithub/cvg.jar " + namePostfix + " " + gitRepopath 
         + " src/main/java/ master Start " + namePath;
     System.out.println(totalcommand);
     Utils.executeCommandLinux(totalcommand);
