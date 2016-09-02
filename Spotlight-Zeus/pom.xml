@@ -40,7 +40,7 @@
     <dependency>
       <groupId>com.github.juliusHuelsmann</groupId>
       <artifactId>JavaUtils</artifactId>
-      <version>4a2cfc5</version>
+      <version>e0b3151</version>
       <scope>compile</scope>
     </dependency>
     

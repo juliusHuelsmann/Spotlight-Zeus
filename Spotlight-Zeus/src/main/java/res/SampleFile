@@ -1,0 +1,65 @@
+package res;
+import spotlight.athene.view.dictionaries.VDictionaryWeb;
+
+
+/**
+ * The Sample file that is displayed to the user for implementing own 
+ * dictionary web.
+ * 
+ * @author Julius Huelsmann
+ * @version %I%, %U%
+ * @since 1.0
+ */
+public class Samplefile extends VDictionaryWeb {
+
+  /**
+   * Default serial version UID. Do not change.
+   */
+  private static final long serialVersionUID = 1L;
+  
+  
+  /**
+   * Return the URL.
+   * @param   the extracted word that is to be looked up 
+   * @return  the url
+   */
+  @Override
+  protected String getURL(String xsearchWord) {
+    // TODO Auto-generated method stub
+    return xsearchWord;
+  }
+
+  /**
+   * Whether or whether not to demand the mobile version. The mobile version
+   * often suits the size of the window, but sometimes the link differs for
+   * the mobile version and nothing is being displayed in case true is selected.
+   * @return  if mobile version is to be displayed
+   */
+  @Override
+  protected boolean demandMobileVersion() {
+    // TODO Auto-generated method stub
+    return true;
+  }
+  
+
+  /**
+   * Return the zoom factor. <1: smaller display, > 1 zoom in.
+   * @return the zoom factor.
+   */
+  @Override
+  protected double getZoomFactor() {
+    // TODO Auto-generated method stub
+    return 0.8;
+  }
+  
+
+  /**
+   * Return the BufferedImage or string that is used for identifying the
+   * Dictionary inside the list of dictionaries (for user).
+   * @return
+   */
+  public Object getIdentifier() {
+    // TODO Auto-generated method stub
+    return "D";
+  }
+}
