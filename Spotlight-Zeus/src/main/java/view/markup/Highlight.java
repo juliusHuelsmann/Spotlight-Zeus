@@ -325,8 +325,12 @@ public class Highlight extends JFrame {
     final String namePostfix = "Serial";
     final String namePath = System.getProperty("user.home")  + "/.Spotlight/";
     final String nameJarFile = namePath + namePostfix + ".jar";
-    Utils.executeCommandLinux(System.getProperty("user.home") 
-        + "/.CompileFromGithub " + namePostfix + " " + gitRepopath + " src/main/java/ master Start " + namePath);
+    
+    final String totalcommand = System.getProperty("user.home") 
+        + "/.CompileFromGithub " + namePostfix + " " + gitRepopath 
+        + " src/main/java/ master Start " + namePath;
+    System.out.println(totalcommand);
+    Utils.executeCommandLinux(totalcommand);
     //need the following files:
     // Dictionaries (all dependencies)
     // the jar file for serializing the new created java file
