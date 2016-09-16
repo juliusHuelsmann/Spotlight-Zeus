@@ -6,6 +6,8 @@ import javax.swing.text.*;
 import utils.Utils;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.BufferedInputStream;
@@ -25,27 +27,16 @@ import java.util.regex.PatternSyntaxException;
 
 public class Highlight extends JFrame {
   
-  final String str0 [] = new String[] {
-      "abstract",  "continue",  "for", "new", "switch",
-      "assert", "default", "goto", "package", "synchronized",
-      "boolean", "do",  "if",   "private",  "this",
-      "break", "double",  "implements",  "protected", "throw",
-      "byte",  "else",  "import",  "public",  "throws",
-      "case",  "enum",  "instanceof",  "return",  "transient",
-      "catch", "extends", "int", "short", "try",
-      "char",  "final", "interface", "static",  "void",
-      "class", "finally", "long",  "strictfp",  "volatile",
-      "const",  "float", "native",  "super", "while",
-      "int", "boolean", "double", "float", "char", "null"};
-
   private final JScrollPane jsp;
-  private final Style styleHighlight, styleNormal, styleComment1, styleComment2;
   private final JTextPane pane;
   private final DefaultStyledDocument doc;
   
   private final JButton jbtnSave;
   private final JButton jbtnCompile;
   private final JLabel jlblErrors;
+  
+  private 
+  StyleContext sc ;
   
   private String className;
   public Highlight() {
@@ -54,6 +45,7 @@ public class Highlight extends JFrame {
     super("Editor");
     super.setLayout(null);
 
+    
     jbtnSave = new JButton("save");
     jbtnSave.setBounds(0, 0, 100, 20);
     super.add(jbtnSave);
@@ -70,110 +62,15 @@ public class Highlight extends JFrame {
     
     
     // Create the StyleContext, the document and the pane
-    StyleContext sc = new StyleContext();
+    sc = new StyleContext();
     doc = new DefaultStyledDocument(sc);
     pane = new JTextPane(doc);
-    pane.addKeyListener(new KeyListener() {
-      
-      public void keyTyped(KeyEvent e) {
-        System.out.println("kt");
-      }
-      
-      public void keyReleased(KeyEvent e) {
+    
 
-        if (e.getKeyChar() == '\n') {
-              int cp = pane.getCaretPosition() - 1;
-              final String first = pane.getText().substring(0, cp);
-              final String second = pane.getText().substring(cp + 1, pane.getText().length());
-              int lindex = 1 + first.lastIndexOf("\n");
-              String d = pane.getText().substring(lindex, cp);
-              String prefix = "";
-              for (int i = 0; i < d.length(); i++) {
-                if (d.charAt(i) == ' ') {
-                  prefix += " ";
-                } else if (d.charAt(i) == '\t') {
-                  prefix += "\t";
-                } else {
-                  break;
-                }
-              }
-              try {
-                doc.remove(0, doc.getLength());
-                doc.insertString(0, first + "\n" + prefix + second , styleNormal);
-                pane.setCaretPosition(cp + prefix.length() + 1);
-              } catch (BadLocationException e1) {
-                e1.printStackTrace();
-              }
-          
-        } else if (e.getKeyChar() == '(') {
-
-          try {
-            int cp = pane.getCaretPosition();
-            final String prefix = pane.getText().substring(0, cp);
-            final String postfix = pane.getText().substring(cp, pane.getText().length());
-            final String infix = ")";
-            doc.remove(0, doc.getLength());
-            doc.insertString(0, prefix + infix + postfix , styleNormal);
-            pane.setCaretPosition(cp);
-          } catch (BadLocationException e1) {
-            e1.printStackTrace();
-          }
-          
-        } else if (e.getKeyChar() == '{') {
-
-          try {
-            int cp = pane.getCaretPosition();
-            final String prefix = pane.getText().substring(0, cp);
-            final String postfix = pane.getText().substring(cp, pane.getText().length());
-            final String infix = "}";
-            doc.remove(0, doc.getLength());
-            doc.insertString(0, prefix + infix + postfix , styleNormal);
-            pane.setCaretPosition(cp);
-          } catch (BadLocationException e1) {
-            e1.printStackTrace();
-          }
-          
-        } else if ('"' == (e.getKeyChar())) {
-
-          
-          try {
-            int cp = pane.getCaretPosition();
-            final String prefix = pane.getText().substring(0, cp);
-            final String postfix = pane.getText().substring(cp, pane.getText().length());
-            final String infix = "\"";
-            doc.remove(0, doc.getLength());
-            doc.insertString(0, prefix + infix + postfix , styleNormal);
-            pane.setCaretPosition(cp );
-          } catch (BadLocationException e1) {
-            e1.printStackTrace();
-          }
-          
-        } else if (e.getKeyChar() == '\'') {
-
-          try {
-            int cp = pane.getCaretPosition();
-            final String prefix = pane.getText().substring(0, cp);
-            final String postfix = pane.getText().substring(cp, pane.getText().length());
-            final String infix = "'";
-            doc.remove(0, doc.getLength());
-            doc.insertString(0, prefix + infix + postfix , styleNormal);
-            pane.setCaretPosition(cp);
-          } catch (BadLocationException e1) {
-            e1.printStackTrace();
-          }
-          
-        } 
-
-        System.out.println(e.getKeyChar());
-        wordFinished();        
-      }
-      
-      public void keyPressed(KeyEvent e) {
-        System.out.println("kp");
-        // TODO Auto-generated method stub
-        
-      }
-    });
+    final HighlightActionListener ali = new HighlightActionListener(this);
+    jbtnSave.addActionListener(ali);
+    jbtnCompile.addActionListener(ali);
+    pane.addKeyListener(ali);
     
     // set tab size (2 characters for now)
     final int anz = 40;
@@ -187,30 +84,6 @@ public class Highlight extends JFrame {
     pane.setMargin(new Insets(0, 15, 0 , 0));
     
     
-    // Create and add the style
-    styleHighlight = sc.addStyle("highlight", null);
-    styleHighlight.addAttribute(StyleConstants.Foreground, new Color(150, 100, 50));
-    styleHighlight.addAttribute(StyleConstants.FontSize, new Integer(13));
-    styleHighlight.addAttribute(StyleConstants.FontFamily, "Courier new");
-    styleHighlight.addAttribute(StyleConstants.Bold, new Boolean(true));
-    // Create and add the style
-    styleNormal = sc.addStyle("normal", null);
-    styleNormal.addAttribute(StyleConstants.Foreground, new Color(0, 0, 0));
-    styleNormal.addAttribute(StyleConstants.FontSize, new Integer(13));
-    styleNormal.addAttribute(StyleConstants.FontFamily, "Courier new");
-    styleNormal.addAttribute(StyleConstants.Bold, new Boolean(false));
-    // Create and add the style
-    styleComment1 = sc.addStyle("c1", null);
-    styleComment1.addAttribute(StyleConstants.Foreground, new Color(50, 200, 50));
-    styleComment1.addAttribute(StyleConstants.FontSize, new Integer(13));
-    styleComment1.addAttribute(StyleConstants.FontFamily, "Courier new");
-    styleComment1.addAttribute(StyleConstants.Bold, new Boolean(false));
-    // Create and add the style
-    styleComment2 = sc.addStyle("c2", null);
-    styleComment2.addAttribute(StyleConstants.Foreground, new Color(50, 20, 150));
-    styleComment2.addAttribute(StyleConstants.FontSize, new Integer(13));
-    styleComment2.addAttribute(StyleConstants.FontFamily, "Courier new");
-    styleComment2.addAttribute(StyleConstants.Bold, new Boolean(false));
 
 
     jsp = new JScrollPane(pane);
@@ -219,30 +92,228 @@ public class Highlight extends JFrame {
     this.setSize(700, 500);
     super.setLocationRelativeTo(null);
     super.setVisible(true);
+  }
+  
+  public static void main(String[]args){
+    new Highlight();
+  }
+  
+
+  
+  public void setSize(final int width, final int height) {
+    
+    super.setSize(width, height);
+    jsp.setSize(width, height - 20);
+    jsp.setLocation(0, 20);
+  }
+
+  /**
+   * @return the className
+   */
+  public String getClassName() {
+    return className;
+  }
+
+  /**
+   * @param className the className to set
+   */
+  public void setClassName(String className) {
+    setTitle("Edit class [" + className + "]");
+    this.className = className;
+  }
+
+  /**
+   * @return the jbtnSave
+   */
+  public JButton getJbtnSave() {
+    return jbtnSave;
+  }
+
+  /**
+   * @return the jbtnCompile
+   */
+  public JButton getJbtnCompile() {
+    return jbtnCompile;
+  }
+
+
+
+  /**
+   * @return the sc
+   */
+  public StyleContext getSc() {
+    return sc;
+  }
+
+
+
+  /**
+   * @param sc the sc to set
+   */
+  public void setSc(StyleContext sc) {
+    this.sc = sc;
+  }
+
+
+
+  /**
+   * @return the doc
+   */
+  public DefaultStyledDocument getDoc() {
+    return doc;
+  }
+
+
+
+  /**
+   * @return the pane
+   */
+  public JTextPane getPane() {
+    return pane;
+  }
+
+
+}
+
+/**
+ * Mixture of string and int
+ * @author juli
+ *
+ */
+class Strint {
+  
+  private String content;
+  private int len = 0;
+  public Strint(final int xd, final String xs) {
+    this.len = xd;
+    this.content = xs;
+  }
+  /**
+   * @return the content
+   */
+  public String getContent() {
+    return content;
+  }
+  /**
+   * @param content the content to set
+   */
+  public void setContent(String content) {
+    this.content = content;
+  }
+  /**
+   * @return the len
+   */
+  public int getLen() {
+    return len;
+  }
+  /**
+   * @param len the len to set
+   */
+  public void setLen(int len) {
+    this.len = len;
+  }
+  
+  
+}
+
+
+class HighlightActionListener implements ActionListener, KeyListener {
+
+  private final Style styleHighlight, styleNormal, styleComment1, styleComment2;
+  final String str0 [] = new String[] {
+      "abstract",  "continue",  "for", "new", "switch",
+      "assert", "default", "goto", "package", "synchronized",
+      "boolean", "do",  "if",   "private",  "this",
+      "break", "double",  "implements",  "protected", "throw",
+      "byte",  "else",  "import",  "public",  "throws",
+      "case",  "enum",  "instanceof",  "return",  "transient",
+      "catch", "extends", "int", "short", "try",
+      "char",  "final", "interface", "static",  "void",
+      "class", "finally", "long",  "strictfp",  "volatile",
+      "const",  "float", "native",  "super", "while",
+      "int", "boolean", "double", "float", "char", "null"};
+
+  
+  private Highlight hl;
+  public HighlightActionListener(final Highlight xhl) {
+    this.hl = xhl;
+
+    // Create and add the style
+    styleHighlight = hl.getSc().addStyle("highlight", null);
+    styleHighlight.addAttribute(StyleConstants.Foreground, new Color(150, 100, 50));
+    styleHighlight.addAttribute(StyleConstants.FontSize, new Integer(13));
+    styleHighlight.addAttribute(StyleConstants.FontFamily, "Courier new");
+    styleHighlight.addAttribute(StyleConstants.Bold, new Boolean(true));
+    // Create and add the style
+    styleNormal = hl.getSc().addStyle("normal", null);
+    styleNormal.addAttribute(StyleConstants.Foreground, new Color(0, 0, 0));
+    styleNormal.addAttribute(StyleConstants.FontSize, new Integer(13));
+    styleNormal.addAttribute(StyleConstants.FontFamily, "Courier new");
+    styleNormal.addAttribute(StyleConstants.Bold, new Boolean(false));
+    // Create and add the style
+    styleComment1 = hl.getSc().addStyle("c1", null);
+    styleComment1.addAttribute(StyleConstants.Foreground, new Color(50, 200, 50));
+    styleComment1.addAttribute(StyleConstants.FontSize, new Integer(13));
+    styleComment1.addAttribute(StyleConstants.FontFamily, "Courier new");
+    styleComment1.addAttribute(StyleConstants.Bold, new Boolean(false));
+    // Create and add the style
+    styleComment2 = hl.getSc().addStyle("c2", null);
+    styleComment2.addAttribute(StyleConstants.Foreground, new Color(50, 20, 150));
+    styleComment2.addAttribute(StyleConstants.FontSize, new Integer(13));
+    styleComment2.addAttribute(StyleConstants.FontFamily, "Courier new");
+    styleComment2.addAttribute(StyleConstants.Bold, new Boolean(false));
+    
 
     try {
-      doc.insertString(0, readSampleFile(), styleNormal);
+      hl.getDoc().insertString(0, readSampleFile(), styleNormal);
       wordFinished();
     } catch (BadLocationException e1) {
       // TODO Auto-generated catch block
       e1.printStackTrace();
     }
 
-    
-
-  
-  
   }
-  
-  private boolean isHighlighted(final String s) {
-    for (String s2 : str0) {
-      if (s2.equals(s)) {
-        return true;
+  @Override
+  public void actionPerformed(ActionEvent e) {
+    if (e.getSource().equals(hl.getJbtnSave())) {
+
+      final int d = JOptionPane.showConfirmDialog(hl,
+          "The compilation process will take  a while (approx 5 min ) \n"
+          + "because additional files have to be downloaded and compiled, too.\n"
+          + "Sure to continue?");
+      if (d == JOptionPane.OK_OPTION) {
+
+        final boolean s = storeData();
+        JOptionPane.showMessageDialog(hl, 
+            "The class has been stored inside the specified location for the\n"
+            + " Spotlight-suite. The name of the file is chosen according to\n"
+            + " the Classname. Success:" + s);
+      }
+    } else if (e.getSource().equals(hl.getJbtnCompile())) {
+
+      final int d = JOptionPane.showConfirmDialog(hl,
+          "The compilation process will take  a while (approx 5 min ) \n"
+          + "because additional files have to be downloaded and compiled, too.\n"
+          + "Sure to continue?");
+      if (d == JOptionPane.OK_OPTION) {
+        final boolean s = testCompile();
+        JOptionPane.showMessageDialog(hl, "Success == false == " + !s 
+            + " is true.");
       }
     }
-    return false;
+  }
+
+  public boolean testCompile() {
+
+    final String serialPath = System.getProperty("user.home") + "/.Spotlight/temporary/";
+    return compile(serialPath);
   }
   
+  public boolean storeData() {
+
+    final String serialPath = System.getProperty("user.home") + "/.Spotlight/serial/";
+    return compile(serialPath);
+  }
   
   /**
    * 0) initialize git repository.
@@ -255,10 +326,9 @@ public class Highlight extends JFrame {
    * 
    * 2) Call the compilefrom git jar file
    */
-  public void storeData() {
+  public boolean compile(final String serialPath) {
 
     // 0) initialize git repository
-    final String serialPath = System.getProperty("user.home") + "/.Spotlight/serial/";
     final String gitRepopath = System.getProperty("user.home") + "/.Spotlight/temporary/gitRepository/";
     new File(gitRepopath).mkdirs();
     new File(serialPath).mkdirs();
@@ -281,8 +351,10 @@ public class Highlight extends JFrame {
         saveUrl(resultingPath, prefix + contents[j]);
       } catch (MalformedURLException e) {
         e.printStackTrace();
+        return false;
       } catch (IOException e) {
         e.printStackTrace();
+        return false;
       }
       
       // remove package declaration
@@ -305,23 +377,22 @@ public class Highlight extends JFrame {
     ///spotlight-athene/src/main/java/spotlight/athene/view/dictionaries/VDictionaryWeb.java
 
     // load the file
-    final String outputFileLocation = serialPath + getClassName() + ".serialized";
+    final String outputFileLocation = serialPath + hl.getClassName() + ".serialized";
     String s = readFileFromJar("/res/Serialize");
     s = s.replaceAll("\\[FILE_LOCATION\\]",  outputFileLocation);
-    s = s.replaceAll("\\[JAR_CLASS_NAME\\]", getClassName());
+    s = s.replaceAll("\\[JAR_CLASS_NAME\\]", hl.getClassName());
     writeToFile(gitRepopath + pathinfix + "Start.java", s);
     
 
-    writeToFile(gitRepopath + pathinfix + getClassName() + ".java", pane.getText());
+    writeToFile(gitRepopath + pathinfix + hl.getClassName() + ".java", hl.getPane().getText());
     
     
     // commit
     final String scriptPath = gitRepopath + "commitScript";
-    System.out.println(scriptPath);
     Utils.generateExecutableScript(scriptPath, "#!/bin/bash\ncd " 
         + gitRepopath + "\ngit add .\n"
         + "git commit -am \".\"");
-    Utils.executeCommandLinux(scriptPath);
+    final boolean success0 = Utils.executeCommandLinux(Utils.executeCommandLinux(scriptPath)).startsWith("Succ");
     
     // compile
     final String namePostfix = "Serial";
@@ -331,17 +402,18 @@ public class Highlight extends JFrame {
     final String totalcommand = "java -jar " + System.getProperty("user.home") 
         + "/.CompileFromGithub/cvg.jar " + namePostfix + " " + gitRepopath 
         + " src/main/java/ master Start " + namePath;
-    System.out.println(totalcommand);
-    Utils.executeCommandLinux(totalcommand);
+    final boolean success1 = Utils.executeCommandLinux(Utils.executeCommandLinux(totalcommand)).startsWith("Succ");
+    
     //need the following files:
     // Dictionaries (all dependencies)
     // the jar file for serializing the new created java file
     // the new created java file
     
-    Utils.executeCommandLinux("java -jar " + nameJarFile);
+    final boolean success2 = Utils.executeCommandLinux("java -jar " + nameJarFile).startsWith("Succ");
     //TODO: copy the result to the given folder
     
     
+    return success0 && success1 && success2;
   }
   
   public void saveUrl(final String filename, final String urlString)
@@ -374,10 +446,10 @@ public class Highlight extends JFrame {
 
     try {
       
-      doc.setCharacterAttributes(0, doc.getLength(), styleNormal, false);
-      final String text = doc.getText(0, doc.getLength());
+      hl.getDoc().setCharacterAttributes(0, hl.getDoc().getLength(), styleNormal, false);
+      final String text = hl.getDoc().getText(0, hl.getDoc().getLength());
       Strint[] wordsplit = characterSplit(text);
-      String[] linesplit = doc.getText(0, doc.getLength()).split("\n", -1);
+      String[] linesplit = hl.getDoc().getText(0, hl.getDoc().getLength()).split("\n", -1);
       
       int cumulativeStart = 0;
       boolean classFound = false;
@@ -391,26 +463,25 @@ public class Highlight extends JFrame {
             for (int j = i + 1; j < linesplit.length; j++) {
               if (wordsplit[j].getContent().length() >= 1) {
                 
-                setClassName(wordsplit[j].getContent());
+                hl.setClassName(wordsplit[j].getContent());
                 classFound = true;
                 break;
               }
             }
           }
           
-          doc.setCharacterAttributes(cumulativeStart,
+          hl.getDoc().setCharacterAttributes(cumulativeStart,
               wordsplit[i].getContent().length(), styleHighlight, false);
         }
         
         cumulativeStart += wordsplit[i].getContent().length() + 1;
-//        System.out.println(text.substring(cumulativeStart, text.length()));
       }
       cumulativeStart = 0;
       for (int i = 0; i < linesplit.length; i++) {
         final int occurrence = linesplit[i].indexOf("//");
         if (occurrence != -1) {
 
-          doc.setCharacterAttributes(cumulativeStart,
+          hl.getDoc().setCharacterAttributes(cumulativeStart,
               linesplit[i].length(), styleComment1, false);
         }
         cumulativeStart += linesplit[i].length() + 1;
@@ -427,7 +498,7 @@ public class Highlight extends JFrame {
         if (oc1 != -1 && oc2 != -1) {
 
 
-          doc.setCharacterAttributes(cumulativeStart + oc1,
+          hl.getDoc().setCharacterAttributes(cumulativeStart + oc1,
               oc2 + 2 - oc1, styleComment1, false);
           
 
@@ -436,7 +507,7 @@ public class Highlight extends JFrame {
           
         } else if (oc1 != -1 && oc2 == -1){
 
-          doc.setCharacterAttributes(cumulativeStart + oc1,
+          hl.getDoc().setCharacterAttributes(cumulativeStart + oc1,
               txtCopy.length(), styleComment1, false);
           oc1 = -1;
           return;
@@ -453,7 +524,7 @@ public class Highlight extends JFrame {
         if (oc1 != -1 && oc2 != -1) {
 
 
-          doc.setCharacterAttributes(cumulativeStart + oc1,
+          hl.getDoc().setCharacterAttributes(cumulativeStart + oc1,
               oc2 + 2 - oc1, styleComment2, false);
           
 
@@ -462,14 +533,14 @@ public class Highlight extends JFrame {
           
         } else if (oc1 != -1 && oc2 == -1){
 
-          doc.setCharacterAttributes(cumulativeStart + oc1,
+          hl.getDoc().setCharacterAttributes(cumulativeStart + oc1,
               txtCopy.length(), styleComment1, false);
           oc1 = -1;
           return;
         }
       }
 
-      doc.setCharacterAttributes(0,
+      hl.getDoc().setCharacterAttributes(0,
          0, styleNormal, false);
       
     } catch (BadLocationException e) {
@@ -524,12 +595,110 @@ public class Highlight extends JFrame {
     return res;
     }
 
+  private boolean isHighlighted(final String s) {
+    for (String s2 : str0) {
+      if (s2.equals(s)) {
+        return true;
+      }
+    }
+    return false;
+  }
   
-  public void setSize(final int width, final int height) {
+
+  
+  public void keyTyped(KeyEvent e) { }
+  
+  public void keyReleased(KeyEvent e) {
+
+    if (e.getKeyChar() == '\n') {
+          int cp = hl.getPane().getCaretPosition() - 1;
+          final String first = hl.getPane().getText().substring(0, cp);
+          final String second = hl.getPane().getText().substring(cp + 1, hl.getPane().getText().length());
+          int lindex = 1 + first.lastIndexOf("\n");
+          String d = hl.getPane().getText().substring(lindex, cp);
+          String prefix = "";
+          for (int i = 0; i < d.length(); i++) {
+            if (d.charAt(i) == ' ') {
+              prefix += " ";
+            } else if (d.charAt(i) == '\t') {
+              prefix += "\t";
+            } else {
+              break;
+            }
+          }
+          try {
+            hl.getDoc().remove(0, hl.getDoc().getLength());
+            hl.getDoc().insertString(0, first + "\n" + prefix + second , styleNormal);
+            hl.getPane().setCaretPosition(cp + prefix.length() + 1);
+          } catch (BadLocationException e1) {
+            e1.printStackTrace();
+          }
+      
+    } else if (e.getKeyChar() == '(') {
+
+      try {
+        int cp = hl.getPane().getCaretPosition();
+        final String prefix = hl.getPane().getText().substring(0, cp);
+        final String postfix = hl.getPane().getText().substring(cp, hl.getPane().getText().length());
+        final String infix = ")";
+        hl.getDoc().remove(0, hl.getDoc().getLength());
+        hl.getDoc().insertString(0, prefix + infix + postfix , styleNormal);
+        hl.getPane().setCaretPosition(cp);
+      } catch (BadLocationException e1) {
+        e1.printStackTrace();
+      }
+      
+    } else if (e.getKeyChar() == '{') {
+
+      try {
+        int cp = hl.getPane().getCaretPosition();
+        final String prefix = hl.getPane().getText().substring(0, cp);
+        final String postfix = hl.getPane().getText().substring(cp, hl.getPane().getText().length());
+        final String infix = "}";
+        hl.getDoc().remove(0, hl.getDoc().getLength());
+        hl.getDoc().insertString(0, prefix + infix + postfix , styleNormal);
+        hl.getPane().setCaretPosition(cp);
+      } catch (BadLocationException e1) {
+        e1.printStackTrace();
+      }
+      
+    } else if ('"' == (e.getKeyChar())) {
+
+      
+      try {
+        int cp = hl.getPane().getCaretPosition();
+        final String prefix = hl.getPane().getText().substring(0, cp);
+        final String postfix = hl.getPane().getText().substring(cp, hl.getPane().getText().length());
+        final String infix = "\"";
+        hl.getDoc().remove(0, hl.getDoc().getLength());
+        hl.getDoc().insertString(0, prefix + infix + postfix , styleNormal);
+        hl.getPane().setCaretPosition(cp );
+      } catch (BadLocationException e1) {
+        e1.printStackTrace();
+      }
+      
+    } else if (e.getKeyChar() == '\'') {
+
+      try {
+        int cp = hl.getPane().getCaretPosition();
+        final String prefix = hl.getPane().getText().substring(0, cp);
+        final String postfix = hl.getPane().getText().substring(cp, hl.getPane().getText().length());
+        final String infix = "'";
+        hl.getDoc().remove(0, hl.getDoc().getLength());
+        hl.getDoc().insertString(0, prefix + infix + postfix , styleNormal);
+        hl.getPane().setCaretPosition(cp);
+      } catch (BadLocationException e1) {
+        e1.printStackTrace();
+      }
+      
+    } 
+
+    wordFinished();        
+  }
+  
+  public void keyPressed(KeyEvent e) {
+    // TODO Auto-generated method stub
     
-    super.setSize(width, height);
-    jsp.setSize(width, height - 20);
-    jsp.setLocation(0, 20);
   }
   public static String readSampleFile() {
     return readFileFromJar("/res/SampleFile");
@@ -581,69 +750,8 @@ public class Highlight extends JFrame {
     }
   }
   
-  public static void main(String[] args) {
 
-    new Highlight().storeData();;
-  }
-
-  /**
-   * @return the className
-   */
-  public String getClassName() {
-    return className;
-  }
-
-  /**
-   * @param className the className to set
-   */
-  public void setClassName(String className) {
-    setTitle("Edit class [" + className + "]");
-    this.className = className;
-  }
-
-
-}
-
-/**
- * Mixture of string and int
- * @author juli
- *
- */
-class Strint {
-  
-  private String content;
-  private int len = 0;
-  public Strint(final int xd, final String xs) {
-    this.len = xd;
-    this.content = xs;
-  }
-  /**
-   * @return the content
-   */
-  public String getContent() {
-    return content;
-  }
-  /**
-   * @param content the content to set
-   */
-  public void setContent(String content) {
-    this.content = content;
-  }
-  /**
-   * @return the len
-   */
-  public int getLen() {
-    return len;
-  }
-  /**
-   * @param len the len to set
-   */
-  public void setLen(int len) {
-    this.len = len;
-  }
-  
   
 }
-
            
          
